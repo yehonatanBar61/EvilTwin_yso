@@ -5,37 +5,16 @@ import time
 from datetime import datetime
 import attack
 import fakeAP
-
-
-def bash(command: str):
-    """
-     execute bash command
-    :param command represent the bash command we want to execute
-    """
-    return os.system(command)
-
-
-def print_regular(message: str):
-    print('{}{}'.format(Fore.WHITE, message))
-
-
-def print_command(message: str):
-    print('{}{}'.format(Fore.BLUE, message))
-    print(Fore.RESET)
-
-
-def print_errors(message: str):
-    print('{}{}'.format(Fore.RED, message))
-    print(Fore.RESET)
+import defence
 
 
 def print_header(message: str):
     print(Fore.WHITE)
-    bash('figlet -f slant {}'.format(message))
+    os.system('figlet -f slant {}'.format(message))
 
 def print_sub_header(message: str):
     print(Fore.GREEN)
-    bash('figlet -f digital {}'.format(message))
+    os.system('figlet -f digital {}'.format(message))
     print(Fore.RESET)
 
 
@@ -88,31 +67,39 @@ def run_attack():
     target_ap = attacker.network_search()
     print(Fore.BLUE + "[*] The target AP is: {}".format(target_ap))
     target_client = attacker.client_search(target_ap)
-    print_regular(Fore.BLUE + '[*] The target you choose to attack: {}'.format(target_client))
+    print(Fore.BLUE + '[*] The target you choose to attack: {}'.format(target_client))
     attacker.deauth(target_client, target_ap[1],attacker.wlan_interface)   
     attacker.create_fakeAP()
 
+def run_defence():
+    """
+        Let's start the defence
+    """
+    defender = defence.defence()
+
 def run():
     print_header("EvilTwin runner")
-    print_command("Welcome To EvilTwin Runner")
+    print(Fore.BLUE + "Welcome To EvilTwin Runner")
 
     if os.geteuid() != 0:
         sys.exit('{}Error: This script must be run as root.'.format(Fore.RED))
 
     while True:
-        user_input = input('{}\n(1) Perform Evil Twin Attack\n'
+        user_input = input(Fore.YELLOW + '\n(1) Perform Evil Twin Attack\n'
                  '(2) Perform Defence on Evil Twin Attack\n'
                  '(3) CleanUp'
-                 'Please select one of the options mentioned above, or write quit to quit the manager\n\n'.format(
-                    Fore.BLUE))
+                 'Please select one of the options mentioned above, or write quit to quit the manager\n\n')
         if user_input == '1':
             run_attack()
+            break
+        if user_input == '2':
+            run_defence()
             break
         if user_input == '3':
             restart("none", "none")
             sys.exit()
         else:
-            print_errors('Not a valid option, try again please.')
+            print(Fore.RED + 'Not a valid option, try again please.')
     
 
 if __name__ == '__main__':
