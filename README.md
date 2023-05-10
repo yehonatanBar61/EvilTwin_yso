@@ -28,6 +28,15 @@ An evil twin attack occurs when a hacker tries to trick users into connecting to
 2. Install all requirements by running: ```sudo sh to_install.sh```
 3. Run the program with: ```sudo python3 run.py```
 
+### Running the attack:
+1. choose option 1
+2. enter 2 interfaces names as requested
+3. choose network
+4. choose target client
+5. attack him (you can press control + c to stop the sending of the packets)
+6. create fake AP with the name of the AP that you choose
+7. in order to see all passwords press "done" and the passwords will apeer in passwords.txt at the end of the file
+
 ### Links that we used: 
 
 https://www.youtube.com/watch?v=bmGlHjKWTUc&t=136s
