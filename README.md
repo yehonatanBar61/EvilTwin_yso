@@ -4,7 +4,7 @@
 - Shoham Cohen
  - Ori Ariel
  
- (!alt_text)[for readme/Evil-Twin-Attack-readmepic.png]
+ [!alt_text](for readme/Evil-Twin-Attack-readmepic.png)
 
 ### Introduction:
 This project was created as part of a network protection course at Ariel University. The goal of the project is to build an attack tool called EvilTwin and a defense tool against the same attack.
