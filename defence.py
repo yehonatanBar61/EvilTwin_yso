@@ -87,6 +87,9 @@ class defence:
             for network in self.suspects:
                 print(Fore.RED + "[!] Suspect network: SSID = {} , MAC = {}".format(network[0], network[1]))
 
+        print(Fore.YELLOW + 'please wait for 1 min...')
+        self.deauth(self.wlan_interface)
+
         output = input(Fore.YELLOW + "[*] To disconnect from the suspected networks press yes or enter to quit: ")
         if output == 'yes':
             for networks in self.suspects:
@@ -94,12 +97,11 @@ class defence:
 
 
     def disconnect(self, bad_ap):
+        # disconnecting every body from the networks
         print(Fore.YELLOW + "[*] Disconnecting from {}".format(bad_ap))
-        client_addr = "ff:ff:ff:ff"
-        deauth_tap = RadioTap() / Dot11(addr1=client_addr, addr2=bad_ap,
-                                        addr3=bad_ap) / Dot11Deauth()  
-        deauth_tc = RadioTap() / Dot11(addr1=bad_ap, addr2=client_addr,
-                                    addr3=client_addr) / Dot11Deauth()  
+        client_addr = "ff:ff:ff:ff:ff:ff"
+        deauth_tap = RadioTap() / Dot11(addr1=client_addr, addr2=bad_ap, addr3=bad_ap) / Dot11Deauth()  
+        deauth_tc = RadioTap() / Dot11(addr1=bad_ap, addr2=client_addr, addr3=client_addr) / Dot11Deauth()  
         for i in range(1, 10):
             sendp(deauth_tap, iface=self.wlan_interface, count=100)
             sendp(deauth_tc, iface=self.wlan_interface, count=100)
